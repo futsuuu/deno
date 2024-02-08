@@ -33,4 +33,5 @@ tokio.workspace = true
 nix.workspace = true
 
 [target.'cfg(windows)'.dependencies]
+junction.workspace = true
 winapi = { workspace = true, features = ["winbase"] }
