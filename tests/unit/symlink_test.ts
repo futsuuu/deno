@@ -64,6 +64,63 @@ Deno.test(
 );
 
 Deno.test(
+  {
+    ignore: Deno.build.os !== "windows",
+    permissions: { read: true, write: true },
+  },
+  function symlinkSyncJunction() {
+    const testDir = Deno.makeTempDirSync();
+    const oldname = testDir + "/oldname";
+    const newname = testDir + "/newname";
+    Deno.mkdirSync(oldname);
+    Deno.symlinkSync(oldname, newname, { type: "junction" });
+    const newNameInfoLStat = Deno.lstatSync(newname);
+    const newNameInfoStat = Deno.statSync(newname);
+    assert(newNameInfoLStat.isSymlink);
+    assert(newNameInfoStat.isDirectory);
+  },
+);
+
+Deno.test(
+  {
+    ignore: Deno.build.os !== "windows",
+    permissions: { read: true, write: true },
+  },
+  function symlinkSyncJunctionRelativePath() {
+    const testDir = Deno.makeTempDirSync();
+    const oldname = testDir + "/oldname";
+    const newname = testDir + "/newname";
+    Deno.mkdirSync(oldname);
+    const cwd = Deno.cwd();
+    Deno.chdir(testDir);
+    Deno.symlinkSync("oldname", "newname", { type: "junction" });
+    Deno.chdir(cwd);
+    const newNameInfoLStat = Deno.lstatSync(newname);
+    const newNameInfoStat = Deno.statSync(newname);
+    assert(newNameInfoLStat.isSymlink);
+    assert(newNameInfoStat.isDirectory);
+  },
+);
+
+Deno.test(
+  {
+    ignore: Deno.build.os !== "windows",
+    permissions: { read: true, write: true },
+  },
+  function symlinkSyncJunctionAlreadyExist() {
+    const existingFile = Deno.makeTempFileSync();
+    const existingFile2 = Deno.makeTempFileSync();
+    assertThrows(
+      () => {
+        Deno.symlinkSync(existingFile, existingFile2, { type: "junction" });
+      },
+      Deno.errors.AlreadyExists,
+      `symlink '${existingFile}' -> '${existingFile2}'`,
+    );
+  },
+);
+
+Deno.test(
   { permissions: { read: true, write: true } },
   async function symlinkSuccess() {
     const testDir = Deno.makeTempDirSync();
@@ -104,6 +161,63 @@ Deno.test(
     await assertRejects(
       async () => {
         await Deno.symlink(existingFile, existingFile2);
+      },
+      Deno.errors.AlreadyExists,
+      `symlink '${existingFile}' -> '${existingFile2}'`,
+    );
+  },
+);
+
+Deno.test(
+  {
+    ignore: Deno.build.os !== "windows",
+    permissions: { read: true, write: true },
+  },
+  async function symlinkJunction() {
+    const testDir = Deno.makeTempDirSync();
+    const oldname = testDir + "/oldname";
+    const newname = testDir + "/newname";
+    Deno.mkdirSync(oldname);
+    await Deno.symlink(oldname, newname, { type: "junction" });
+    const newNameInfoLStat = Deno.lstatSync(newname);
+    const newNameInfoStat = Deno.statSync(newname);
+    assert(newNameInfoLStat.isSymlink, "NOT SYMLINK");
+    assert(newNameInfoStat.isDirectory, "NOT DIRECTORY");
+  },
+);
+
+Deno.test(
+  {
+    ignore: Deno.build.os !== "windows",
+    permissions: { read: true, write: true },
+  },
+  function symlinkJunctionRelativePath() {
+    const testDir = Deno.makeTempDirSync();
+    const oldname = testDir + "/oldname";
+    const newname = testDir + "/newname";
+    Deno.mkdirSync(oldname);
+    const cwd = Deno.cwd();
+    Deno.chdir(testDir);
+    Deno.symlinkSync("oldname", "newname", { type: "junction" });
+    Deno.chdir(cwd);
+    const newNameInfoLStat = Deno.lstatSync(newname);
+    const newNameInfoStat = Deno.statSync(newname);
+    assert(newNameInfoLStat.isSymlink);
+    assert(newNameInfoStat.isDirectory);
+  },
+);
+
+Deno.test(
+  {
+    ignore: Deno.build.os !== "windows",
+    permissions: { read: true, write: true },
+  },
+  async function symlinkJunctionAlreadyExist() {
+    const existingFile = Deno.makeTempFileSync();
+    const existingFile2 = Deno.makeTempFileSync();
+    await assertRejects(
+      async () => {
+        await Deno.symlink(existingFile, existingFile2, { type: "junction" });
       },
       Deno.errors.AlreadyExists,
       `symlink '${existingFile}' -> '${existingFile2}'`,
